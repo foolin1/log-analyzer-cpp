@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 project(
     LogAnalyzerCLI
-    VERSION 0.4.0
+    VERSION 0.5.0
     DESCRIPTION
         "Command-line application for analyzing structured log files"
     LANGUAGES CXX
@@ -39,6 +39,7 @@ add_library(
     src/log_parser.cpp
     src/log_reader.cpp
     src/log_filter.cpp
+    src/log_statistics.cpp
 )
 
 target_include_directories(
@@ -87,6 +88,7 @@ if(BUILD_TESTING)
         tests/log_parser_tests.cpp
         tests/log_reader_tests.cpp
         tests/log_filter_tests.cpp
+        tests/log_statistics_tests.cpp
     )
 
     target_link_libraries(

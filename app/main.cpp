@@ -1,8 +1,28 @@
 #include "log_filter.hpp"
+#include "log_level.hpp"
 #include "log_reader.hpp"
+#include "log_statistics.hpp"
 
+#include <cstddef>
 #include <filesystem>
+#include <iomanip>
 #include <iostream>
+
+namespace {
+
+void print_level_count(
+    const log_analyzer::LogStatisticsResult& statistics,
+    const log_analyzer::LogLevel level)
+{
+    std::cout
+        << ' '
+        << log_analyzer::to_string(level)
+        << ": "
+        << statistics.level_counts.at(level)
+        << '\n';
+}
+
+} // namespace
 
 int main()
 {
@@ -22,30 +42,21 @@ int main()
         return 2;
     }
 
-    const auto selected_date =
-        log_analyzer::parse_filter_date(
-            "2026-07-09");
-
-    if (!selected_date.has_value()) {
-        std::cerr
-            << "Internal error: invalid filter date\n";
-
-        return 1;
-    }
-
-    log_analyzer::LogFilterOptions options;
-    options.level =
-        log_analyzer::LogLevel::Error;
-    options.service = "payments";
-    options.from_date = selected_date;
-    options.to_date = selected_date;
+    const log_analyzer::LogFilterOptions options;
 
     const auto filtered_entries =
         log_analyzer::LogFilter::apply(
             read_result.entries,
             options);
 
-    std::cout << "Log Analyzer CLI 0.4.0\n";
+    constexpr std::size_t top_errors_limit = 5;
+
+    const auto statistics =
+        log_analyzer::LogStatistics::calculate(
+            filtered_entries,
+            top_errors_limit);
+
+    std::cout << "Log Analyzer CLI 0.5.0\n";
 
     std::cout
         << "Log file: "
@@ -67,18 +78,92 @@ int main()
         << filtered_entries.size()
         << '\n';
 
-    std::cout << "Selected filters:\n";
-    std::cout << " Level: ERROR\n";
-    std::cout << " Service: payments\n";
-    std::cout << " Date: 2026-07-09\n";
-
-    for (const auto& entry : filtered_entries) {
+    if (filtered_entries.empty()) {
         std::cout
-            << " - "
-            << entry.message
-            << " ("
-            << entry.duration_ms
-            << " ms)\n";
+            << "No log entries match "
+               "the selected filters.\n";
+
+        return 0;
+    }
+
+    std::cout << "Levels:\n";
+
+    print_level_count(
+        statistics,
+        log_analyzer::LogLevel::Debug);
+
+    print_level_count(
+        statistics,
+        log_analyzer::LogLevel::Info);
+
+    print_level_count(
+        statistics,
+        log_analyzer::LogLevel::Warn);
+
+    print_level_count(
+        statistics,
+        log_analyzer::LogLevel::Error);
+
+    std::cout << "Services:\n";
+
+    for (const auto& [service, count] :
+         statistics.service_counts) {
+        std::cout
+            << ' '
+            << service
+            << ": "
+            << count
+            << '\n';
+    }
+
+    if (statistics.duration.has_value()) {
+        std::cout << "Response time, ms:\n";
+
+        std::cout
+            << " Minimum: "
+            << statistics.duration->minimum_ms
+            << '\n';
+
+        std::cout
+            << " Maximum: "
+            << statistics.duration->maximum_ms
+            << '\n';
+
+        std::cout
+            << std::fixed
+            << std::setprecision(1);
+
+        std::cout
+            << " Average: "
+            << statistics.duration->average_ms
+            << '\n';
+
+        std::cout
+            << " Median: "
+            << statistics.duration->median_ms
+            << '\n';
+    }
+
+    std::cout << "Top error messages:\n";
+
+    if (statistics.top_errors.empty()) {
+        std::cout << " No ERROR messages.\n";
+    } else {
+        std::size_t position = 1;
+
+        for (const auto& error :
+             statistics.top_errors) {
+            std::cout
+                << ' '
+                << position
+                << ". "
+                << error.message
+                << " - "
+                << error.count
+                << '\n';
+
+            ++position;
+        }
     }
 
     return 0;
