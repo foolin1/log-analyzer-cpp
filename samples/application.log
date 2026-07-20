@@ -1,0 +1,20 @@
+2026-07-09T10:15:30 INFO auth User logged in 125
+2026-07-09T10:16:04 ERROR payments Payment failed 840
+2026-07-09T10:17:11 WARN api Slow request 1250
+2026-07-09T10:18:20 DEBUG auth Token validation started 18
+2026-07-09T10:19:02 INFO api Request completed 96
+2026-07-09T10:20:15 ERROR payments Payment failed 910
+2026-07-09T10:21:10 ERROR database Database timeout 3000
+2026-07-10T08:01:17 INFO auth User logged out 75
+2026-07-10T08:03:41 WARN payments Retry scheduled 430
+2026-07-10T08:05:00 ERROR api External API unavailable 2100
+2026-07-10T08:06:10 ERROR payments Payment failed 770
+2026-07-10T08:07:45 INFO database Connection restored 220
+2026-07-10T08:08:00 DEBUG api Cache lookup completed 12
+2026-07-10T08:09:30 ERROR database Database timeout 2840
+2026-07-10T08:10:10 INFO payments Payment completed 360
+2026-07-10 08:11:00 INFO auth Invalid date format 100
+2026-07-10T08:12:00 TRACE api Unknown level 50
+2026-07-10T08:13:00 ERROR payments Negative duration -10
+2026-07-10T08:14:00 INFO auth 100
+2026-07-10T08:15:00 INFO api Request finished abc
