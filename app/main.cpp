@@ -1,48 +1,85 @@
-#include "log_parser.hpp"
+#include "log_filter.hpp"
+#include "log_reader.hpp"
 
+#include <filesystem>
 #include <iostream>
-#include <string_view>
 
 int main()
 {
-    constexpr std::string_view sample_line =
-        "2026-07-09T10:16:04 ERROR payments "
-        "Payment failed after retry 840";
+    const std::filesystem::path input_path{
+        "samples/application.log"
+    };
 
-    const auto result =
-        log_analyzer::LogParser::parse(sample_line);
+    const auto read_result =
+        log_analyzer::LogReader::read(input_path);
 
-    if (!result.success()) {
+    if (!read_result.success()) {
         std::cerr
-            << "Parser error: "
-            << result.error
+            << "Reader error: "
+            << read_result.error
             << '\n';
+
+        return 2;
+    }
+
+    const auto selected_date =
+        log_analyzer::parse_filter_date(
+            "2026-07-09");
+
+    if (!selected_date.has_value()) {
+        std::cerr
+            << "Internal error: invalid filter date\n";
 
         return 1;
     }
 
-    const auto& entry = *result.entry;
+    log_analyzer::LogFilterOptions options;
+    options.level =
+        log_analyzer::LogLevel::Error;
+    options.service = "payments";
+    options.from_date = selected_date;
+    options.to_date = selected_date;
 
-    std::cout << "Log Analyzer CLI 0.2.0\n";
+    const auto filtered_entries =
+        log_analyzer::LogFilter::apply(
+            read_result.entries,
+            options);
+
+    std::cout << "Log Analyzer CLI 0.4.0\n";
+
     std::cout
-        << "Level: "
-        << log_analyzer::to_string(entry.level)
+        << "Log file: "
+        << input_path.string()
         << '\n';
 
     std::cout
-        << "Service: "
-        << entry.service
+        << "Parsed entries: "
+        << read_result.entries.size()
         << '\n';
 
     std::cout
-        << "Message: "
-        << entry.message
+        << "Invalid lines: "
+        << read_result.invalid_lines
         << '\n';
 
     std::cout
-        << "Duration: "
-        << entry.duration_ms
-        << " ms\n";
+        << "Filtered entries: "
+        << filtered_entries.size()
+        << '\n';
+
+    std::cout << "Selected filters:\n";
+    std::cout << " Level: ERROR\n";
+    std::cout << " Service: payments\n";
+    std::cout << " Date: 2026-07-09\n";
+
+    for (const auto& entry : filtered_entries) {
+        std::cout
+            << " - "
+            << entry.message
+            << " ("
+            << entry.duration_ms
+            << " ms)\n";
+    }
 
     return 0;
 }
