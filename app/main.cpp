@@ -1,4 +1,5 @@
 #include "command_line_options.hpp"
+#include "csv_exporter.hpp"
 #include "log_filter.hpp"
 #include "log_level.hpp"
 #include "log_reader.hpp"
@@ -149,6 +150,7 @@ void print_report(
 int main(const int argc, const char* const argv[])
 {
     std::vector<std::string_view> arguments;
+
     arguments.reserve(
         argc > 1
             ? static_cast<std::size_t>(argc - 1)
@@ -204,11 +206,46 @@ int main(const int argc, const char* const argv[])
 
     if (options.command ==
         log_analyzer::Command::Export) {
-        std::cerr
-            << "Error: CSV export is not available "
-               "in version 0.6.0\n";
+        const auto export_result =
+            log_analyzer::CsvExporter::export_entries(
+                filtered_entries,
+                *options.output_path);
 
-        return 3;
+        if (!export_result.success()) {
+            std::cerr
+                << "Error: "
+                << export_result.error
+                << '\n';
+
+            return 3;
+        }
+
+        std::cout
+            << "Input file: "
+            << options.input_path.string()
+            << '\n';
+
+        std::cout
+            << "Output file: "
+            << options.output_path->string()
+            << '\n';
+
+        std::cout
+            << "Parsed entries: "
+            << read_result.entries.size()
+            << '\n';
+
+        std::cout
+            << "Invalid lines: "
+            << read_result.invalid_lines
+            << '\n';
+
+        std::cout
+            << "Exported entries: "
+            << export_result.rows_written
+            << '\n';
+
+        return 0;
     }
 
     print_report(

@@ -326,7 +326,7 @@ std::string_view help_text() noexcept
 
 std::string_view version_text() noexcept
 {
-    return "Log Analyzer CLI 0.6.0\n";
+    return "Log Analyzer CLI 0.7.0\n";
 }
 
 } // namespace log_analyzer
