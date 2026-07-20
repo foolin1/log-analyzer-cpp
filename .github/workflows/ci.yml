@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build and test on ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Ubuntu
+            os: ubuntu-latest
+
+          - name: Windows
+            os: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Configure CMake on Ubuntu
+        if: runner.os == 'Linux'
+        run: >
+          cmake
+          -S .
+          -B build
+          -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_TESTING=ON
+
+      - name: Configure CMake on Windows
+        if: runner.os == 'Windows'
+        run: >
+          cmake
+          -S .
+          -B build
+          -G "Visual Studio 17 2022"
+          -A x64
+          -DBUILD_TESTING=ON
+
+      - name: Build on Ubuntu
+        if: runner.os == 'Linux'
+        run: cmake --build build --parallel
+
+      - name: Build on Windows
+        if: runner.os == 'Windows'
+        run: cmake --build build --config Release --parallel
+
+      - name: Run tests on Ubuntu
+        if: runner.os == 'Linux'
+        run: >
+          ctest
+          --test-dir build
+          --output-on-failure
+
+      - name: Run tests on Windows
+        if: runner.os == 'Windows'
+        run: >
+          ctest
+          --test-dir build
+          -C Release
+          --output-on-failure
+
+      - name: Run smoke test on Ubuntu
+        if: runner.os == 'Linux'
+        run: >
+          ./build/log-analyzer
+          analyze
+          --input samples/application.log
+          --top-errors 3
+
+      - name: Run smoke test on Windows
+        if: runner.os == 'Windows'
+        run: >
+          .\build\Release\log-analyzer.exe
+          analyze
+          --input samples\application.log
+          --top-errors 3

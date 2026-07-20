@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 project(
     LogAnalyzerCLI
-    VERSION 0.7.0
+    VERSION 1.0.0
     DESCRIPTION
         "Command-line application for analyzing structured log files"
     LANGUAGES CXX

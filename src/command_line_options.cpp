@@ -10,6 +10,7 @@
 #include <string>
 #include <string_view>
 #include <system_error>
+#include <utility>
 #include <vector>
 
 namespace log_analyzer {
@@ -326,7 +327,7 @@ std::string_view help_text() noexcept
 
 std::string_view version_text() noexcept
 {
-    return "Log Analyzer CLI 0.7.0\n";
+    return "Log Analyzer CLI 1.0.0\n";
 }
 
 } // namespace log_analyzer
